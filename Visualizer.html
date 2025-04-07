@@ -68,12 +68,12 @@
         }
 
         .progress-container {
-            height: 30px; /* Increased height */
+            height: 30px;
             background: #eee;
             border-radius: 10px;
             overflow: hidden;
             margin: 20px 0;
-            position: relative; /* Required for absolute positioning */
+            position: relative;
         }
 
         .progress-bar {
@@ -83,24 +83,24 @@
             height: 100%;
             background: #4CAF50;
             transition: width 0.5s ease-in-out;
-            border-radius: 10px; /* Ensure rounded corners */
+            border-radius: 10px;
         }
 
         .progress-label {
-            position: absolute; /* Position over the bar */
+            position: absolute;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%); /* Center the text */
-            color: white; /* Ensure text is visible */
+            transform: translate(-50%, -50%);
+            color: white;
             font-size: 1em;
             font-weight: bold;
-            z-index: 1; /* Ensure it's on top of the bar */
+            z-index: 1;
         }
 
         .filled {
             background-color: #4CAF50;
             height: 20px;
-            animation: fillWidth 0.8s ease-out forwards;
+            animation: fillWidth 1s ease-out forwards;
         }
 
         @keyframes fillWidth {
@@ -122,6 +122,7 @@
             border-radius: 4px;
             cursor: pointer;
             margin-top: 10px;
+            margin-right: 5px;
         }
 
         input {
@@ -166,6 +167,8 @@
         <input type="number" id="itemCount" min="1">
 
         <button onclick="generateItemInputs()">Generate Items</button>
+        <button onclick="generateRandomInputs()">Random Input</button>
+
         <div class="item-inputs" id="itemInputs"></div>
         <button onclick="solveKnapsack()">Solve</button>
     </div>
@@ -195,11 +198,30 @@
         }
     }
 
+    function generateRandomInputs() {
+        const itemCount = Math.floor(Math.random() * 5) + 3; // 3 to 7 items
+        const capacity = Math.floor(Math.random() * 30) + 20; // 20 to 50
+
+        document.getElementById('itemCount').value = itemCount;
+        document.getElementById('capacity').value = capacity;
+
+        generateItemInputs();
+
+        const weights = document.getElementsByClassName('weight');
+        const values = document.getElementsByClassName('value');
+
+        for (let i = 0; i < itemCount; i++) {
+            weights[i].value = Math.floor(Math.random() * 10) + 1;
+            values[i].value = Math.floor(Math.random() * 20) + 10;
+        }
+    }
+
     async function solveKnapsack() {
         const items = [];
         const weights = document.getElementsByClassName('weight');
         const values = document.getElementsByClassName('value');
-        const capacity = parseInt(document.getElementById('capacity').value);
+        const capacity = parseFloat(document.getElementById('capacity').value);
+        document.getElementById('result').innerHTML = "";
 
         for (let i = 0; i < weights.length; i++) {
             const weight = parseFloat(weights[i].value);
@@ -219,19 +241,14 @@
             return;
         }
 
-        // Sort by value/weight ratio descending
         items.sort((a, b) => b.ratio - a.ratio);
-
-        // Display the ratio table
         displayRatioTable(items);
 
         let remaining = capacity;
         let totalValue = 0;
-        const solution = [];
         const visContainer = document.getElementById('itemsVis');
         visContainer.innerHTML = '';
 
-        // Create progress bar
         const progress = document.createElement('div');
         progress.className = 'progress-container';
         progress.innerHTML = `
@@ -242,17 +259,15 @@
         const progressBar = progress.querySelector('.progress-bar');
         const progressLabel = progress.querySelector('.progress-label');
 
-        // Animated solving process
         for (const [index, item] of items.entries()) {
             if (remaining <= 0) break;
 
-            const taken = Math.min(item.weight, remaining);
-            const fraction = taken / item.weight;
-            solution.push({...item, taken, fraction});
-            totalValue += item.value * fraction;
-            remaining -= taken;
+            const takeWeight = Math.min(item.weight, remaining);
+            const fraction = takeWeight / item.weight;
+            const valueGained = item.value * fraction;
+            totalValue += valueGained;
+            remaining -= takeWeight;
 
-            // Create item visualization
             const elem = document.createElement('div');
             elem.className = 'item-box';
             elem.style.setProperty('--target-width', `${fraction * 100}%`);
@@ -266,31 +281,25 @@
             `;
             visContainer.appendChild(elem);
 
-            // Highlight current processing item
             elem.classList.add('processing');
-            await new Promise(r => setTimeout(r, 500));
+            await new Promise(r => setTimeout(r, 1000)); // slowed down
 
-            // Animate fill and text
             const fill = elem.querySelector('.filled');
             const takenAmount = elem.querySelector('.taken-amount');
             fill.style.width = `${fraction * 100}%`;
 
-            // Animate numbers
-            animateValue(takenAmount, 0, taken, 1000,
-                v => `Taken: ${v.toFixed(2)} (${(v/item.weight * 100).toFixed(1)}%)`);
+            animateValue(takenAmount, 0, takeWeight, 1000,
+                v => `Taken: ${v.toFixed(2)} (${(v / item.weight * 100).toFixed(1)}%)`);
 
-            // Update progress bar
             const usedCapacity = capacity - remaining;
             const newWidth = (usedCapacity / capacity * 100).toFixed(2);
             progressBar.style.width = `${newWidth}%`;
             progressLabel.textContent = `${usedCapacity.toFixed(2)}/${capacity}`;
 
-            // Remove processing state
             elem.classList.remove('processing');
-            await new Promise(r => setTimeout(r, 500));
+            await new Promise(r => setTimeout(r, 1000)); // slowed down
         }
 
-        // Update final result
         document.getElementById('result').innerHTML = `
             <h3>Total Value: ${totalValue.toFixed(2)}</h3>
             <p>Capacity Used: ${(capacity - remaining).toFixed(2)}/${capacity}</p>
@@ -318,7 +327,6 @@
         const table = document.createElement('table');
         table.className = 'ratio-table slide-down';
 
-        // Create table header
         const thead = document.createElement('thead');
         const headerRow = document.createElement('tr');
         const headers = ['Item', 'Weight', 'Value', 'Profit/Weight Ratio'];
@@ -330,7 +338,6 @@
         thead.appendChild(headerRow);
         table.appendChild(thead);
 
-        // Create table body
         const tbody = document.createElement('tbody');
         items.forEach((item, index) => {
             const row = document.createElement('tr');
@@ -347,5 +354,6 @@
         tableContainer.appendChild(table);
     }
 </script>
+
 </body>
 </html>
