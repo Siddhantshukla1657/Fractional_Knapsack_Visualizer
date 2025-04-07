@@ -282,7 +282,7 @@
             visContainer.appendChild(elem);
 
             elem.classList.add('processing');
-            await new Promise(r => setTimeout(r, 1000)); // slowed down
+            await new Promise(r => setTimeout(r, 2000)); // slowed down
 
             const fill = elem.querySelector('.filled');
             const takenAmount = elem.querySelector('.taken-amount');
@@ -297,7 +297,7 @@
             progressLabel.textContent = `${usedCapacity.toFixed(2)}/${capacity}`;
 
             elem.classList.remove('processing');
-            await new Promise(r => setTimeout(r, 1000)); // slowed down
+            await new Promise(r => setTimeout(r, 2000)); // slowed down
         }
 
         document.getElementById('result').innerHTML = `
