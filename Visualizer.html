@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animated Knapsack Visualizer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-section {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-section label {
+            margin-bottom: 10px;
+        }
+
+        .item-inputs {
+            margin: 10px 0;
+        }
+
+        .visualization {
+            background: white;
+            padding: 20px;
+            border: 1px solid #ddd;
+            min-height: 400px;
+        }
+
+        .item-box {
+            margin: 15px 0;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            animation: slideIn 0.5s ease-out forwards;
+            opacity: 0;
+        }
+
+        @media (max-width: 480px) {
+            .item-box {
+                margin: 5px 0;
+            }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .progress-container {
+            height: 30px; /* Increased height */
+            background: #eee;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+            position: relative; /* Required for absolute positioning */
+        }
+
+        .progress-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: #4CAF50;
+            transition: width 0.5s ease-in-out;
+            border-radius: 10px; /* Ensure rounded corners */
+        }
+
+        .progress-label {
+            position: absolute; /* Position over the bar */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* Center the text */
+            color: white; /* Ensure text is visible */
+            font-size: 1em;
+            font-weight: bold;
+            z-index: 1; /* Ensure it's on top of the bar */
+        }
+
+        .filled {
+            background-color: #4CAF50;
+            height: 20px;
+            animation: fillWidth 0.8s ease-out forwards;
+        }
+
+        @keyframes fillWidth {
+            from { width: 0; }
+            to { width: var(--target-width); }
+        }
+
+        .processing {
+            box-shadow: 0 0 10px rgba(76,175,80,0.5);
+            transform: scale(1.05);
+            transition: all 0.3s ease;
+        }
+
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        input {
+            margin: 5px;
+            padding: 5px;
+        }
+
+        .ratio-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .ratio-table th, .ratio-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .ratio-table th {
+            background-color: #f5f5f5;
+        }
+
+        .slide-down {
+            animation: slideDown 0.5s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="input-section">
+        <h2>Knapsack Input</h2>
+        <label for="capacity">Capacity:</label>
+        <input type="number" id="capacity" min="1">
+
+        <label for="itemCount">Number of items:</label>
+        <input type="number" id="itemCount" min="1">
+
+        <button onclick="generateItemInputs()">Generate Items</button>
+        <div class="item-inputs" id="itemInputs"></div>
+        <button onclick="solveKnapsack()">Solve</button>
+    </div>
+
+    <div class="visualization" id="visualization">
+        <h2>Solution Visualization</h2>
+        <div id="ratioTableContainer"></div>
+        <div id="result"></div>
+        <div id="itemsVis"></div>
+    </div>
+</div>
+
+<script>
+    function generateItemInputs() {
+        const count = parseInt(document.getElementById('itemCount').value);
+        const container = document.getElementById('itemInputs');
+        container.innerHTML = '';
+
+        for (let i = 0; i < count; i++) {
+            container.innerHTML += `
+                <div>
+                    Item ${i + 1}:
+                    <input type="number" class="weight" placeholder="Weight" min="1">
+                    <input type="number" class="value" placeholder="Value" min="1">
+                </div>
+            `;
+        }
+    }
+
+    async function solveKnapsack() {
+        const items = [];
+        const weights = document.getElementsByClassName('weight');
+        const values = document.getElementsByClassName('value');
+        const capacity = parseInt(document.getElementById('capacity').value);
+
+        for (let i = 0; i < weights.length; i++) {
+            const weight = parseFloat(weights[i].value);
+            const value = parseFloat(values[i].value);
+
+            if (!Number.isNaN(weight) && !Number.isNaN(value) && weight > 0 && value > 0) {
+                items.push({
+                    weight,
+                    value,
+                    ratio: value / weight
+                });
+            }
+        }
+
+        if (items.length === 0) {
+            alert("Please enter valid weights and values for the items.");
+            return;
+        }
+
+        // Sort by value/weight ratio descending
+        items.sort((a, b) => b.ratio - a.ratio);
+
+        // Display the ratio table
+        displayRatioTable(items);
+
+        let remaining = capacity;
+        let totalValue = 0;
+        const solution = [];
+        const visContainer = document.getElementById('itemsVis');
+        visContainer.innerHTML = '';
+
+        // Create progress bar
+        const progress = document.createElement('div');
+        progress.className = 'progress-container';
+        progress.innerHTML = `
+            <div class="progress-bar" style="width: 0%"></div>
+            <div class="progress-label">0/${capacity}</div>
+        `;
+        document.getElementById('result').prepend(progress);
+        const progressBar = progress.querySelector('.progress-bar');
+        const progressLabel = progress.querySelector('.progress-label');
+
+        // Animated solving process
+        for (const [index, item] of items.entries()) {
+            if (remaining <= 0) break;
+
+            const taken = Math.min(item.weight, remaining);
+            const fraction = taken / item.weight;
+            solution.push({...item, taken, fraction});
+            totalValue += item.value * fraction;
+            remaining -= taken;
+
+            // Create item visualization
+            const elem = document.createElement('div');
+            elem.className = 'item-box';
+            elem.style.setProperty('--target-width', `${fraction * 100}%`);
+            elem.innerHTML = `
+                <div>Weight: ${item.weight}</div>
+                <div>Value: ${item.value}</div>
+                <div style="width: 100px; background: #eee; margin: 10px 0">
+                    <div class="filled" style="width: 0"></div>
+                </div>
+                <div class="taken-amount">Taken: 0 (0%)</div>
+            `;
+            visContainer.appendChild(elem);
+
+            // Highlight current processing item
+            elem.classList.add('processing');
+            await new Promise(r => setTimeout(r, 500));
+
+            // Animate fill and text
+            const fill = elem.querySelector('.filled');
+            const takenAmount = elem.querySelector('.taken-amount');
+            fill.style.width = `${fraction * 100}%`;
+
+            // Animate numbers
+            animateValue(takenAmount, 0, taken, 1000,
+                v => `Taken: ${v.toFixed(2)} (${(v/item.weight * 100).toFixed(1)}%)`);
+
+            // Update progress bar
+            const usedCapacity = capacity - remaining;
+            const newWidth = (usedCapacity / capacity * 100).toFixed(2);
+            progressBar.style.width = `${newWidth}%`;
+            progressLabel.textContent = `${usedCapacity.toFixed(2)}/${capacity}`;
+
+            // Remove processing state
+            elem.classList.remove('processing');
+            await new Promise(r => setTimeout(r, 500));
+        }
+
+        // Update final result
+        document.getElementById('result').innerHTML = `
+            <h3>Total Value: ${totalValue.toFixed(2)}</h3>
+            <p>Capacity Used: ${(capacity - remaining).toFixed(2)}/${capacity}</p>
+        ` + progress.outerHTML;
+    }
+
+    function animateValue(element, start, end, duration, textCallback) {
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            const current = start + progress * (end - start);
+            element.textContent = textCallback(current);
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            }
+        };
+        window.requestAnimationFrame(step);
+    }
+
+    function displayRatioTable(items) {
+        const tableContainer = document.getElementById('ratioTableContainer');
+        tableContainer.innerHTML = '';
+
+        const table = document.createElement('table');
+        table.className = 'ratio-table slide-down';
+
+        // Create table header
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        const headers = ['Item', 'Weight', 'Value', 'Profit/Weight Ratio'];
+        headers.forEach(text => {
+            const th = document.createElement('th');
+            th.textContent = text;
+            headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        // Create table body
+        const tbody = document.createElement('tbody');
+        items.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${item.weight}</td>
+                <td>${item.value}</td>
+                <td>${item.ratio.toFixed(2)}</td>
+            `;
+            tbody.appendChild(row);
+        });
+        table.appendChild(tbody);
+
+        tableContainer.appendChild(table);
+    }
+</script>
+</body>
+</html>
