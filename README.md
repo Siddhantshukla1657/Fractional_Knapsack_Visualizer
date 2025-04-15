@@ -8,7 +8,6 @@ This project was developed as part of the **AOA IA2 Simulation Algorithms Projec
 👩‍🎓 Shravani Parte – 16010123319  
 👨‍🎓 Shreejay Kurhade – 16010123320  
 🧑‍🏫 Class: E
-🧑‍🏫 Div: E
 
 ---
 
