@@ -7,7 +7,8 @@ This project was developed as part of the **AOA IA2 Simulation Algorithms Projec
 👨‍🎓 Siddhant Shukla – 16010123330  
 👩‍🎓 Shravani Parte – 16010123319  
 👨‍🎓 Shreejay Kurhade – 16010123320  
-🧑‍🏫 Class: E2
+🧑‍🏫 Class: E
+🧑‍🏫 Div:E
 
 ---
 
@@ -20,25 +21,32 @@ This visualizer helps you understand how the **Fractional Knapsack Algorithm** w
 ## 🧑‍💻 How to Use
 
 ### 1. Set Knapsack Details
+
 - **Capacity:** How much weight your knapsack can carry (e.g., `50`)
 - **Number of Items:** How many items you'd like to test with
 
 > You’ll need to enter both values before moving on.
 
 ### 2. Add Items
+
 You’ve got two choices here:
+
 - **Generate Item Fields:** You fill in the value and weight for each item
 - **Random Items:** The tool will auto-fill some values for you
 
 ### 3. Adjust Animation Speed
+
 Pick your pace:
+
 - 🐢 Very Slow
 - 🐌 Slow
 - ⏱️ Medium
 - ⚡ Fast
 
 ### 4. Run the Algorithm
+
 Click **Solve Knapsack** and see:
+
 - Value-to-weight ratios 💰
 - Which items are picked ✅
 - Total value packed 🎯
@@ -48,6 +56,7 @@ Click **Solve Knapsack** and see:
 ## 🧠 How It Works (In Plain English)
 
 This tool uses a **Greedy Algorithm**:
+
 1. It sorts all items based on their value/weight ratio
 2. It picks the most valuable items per weight first
 3. If the knapsack can’t fit the whole item, it just takes the portion that fits!
@@ -71,7 +80,8 @@ Say we set the capacity to `50`, and enter these items:
 - Item 3: Value = 120, Weight = 30  
 
 The visualizer will pick:
-- ✅ All of Item 1 
+
+- ✅ All of Item 1
 - ✅ All of Item 2
 - 🧩 2/3 of Item 3  
 
