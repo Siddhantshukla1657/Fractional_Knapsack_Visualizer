@@ -52,7 +52,7 @@ Click **Solve Knapsack** and see:
 
 ---
 
-## 🧠 How It Works (In Plain English)
+## 🧠 How It Works
 
 This tool uses a **Greedy Algorithm**:
 
