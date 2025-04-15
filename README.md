@@ -2,6 +2,9 @@
 
 Welcome to the **Fractional Knapsack Visualizer** – a fun and interactive way to explore one of the classic problems in algorithms: how to get the *most value* from limited space using a greedy approach.
 
+Explore the Fractional Knapsack algorithm like never before – with animations, interaction, and intuitive visualizations!  
+🔗 **[Try it Live → fractional-knapsack-visualizer](https://fractional-knapsack-visualizer.vercel.app/)**
+
 This project was developed as part of the **AOA IA2 Simulation Algorithms Project** by:
 
 👨‍🎓 Siddhant Shukla – 16010123330  
